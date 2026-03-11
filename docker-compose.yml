@@ -1,68 +1,38 @@
 version: "3.8"
 
-networks:
-  observability_net:
-    # driver: overlay # Commented out to allow default driver (bridge for local, overlay for swarm)
-
-volumes:
-  grafana_data:
-  loki_data:
-  promtail_positions:
-
-configs:
-  loki_config:
-    file: ./loki-config.yml
-  promtail_config:
-    file: ./promtail-config.yml
-  grafana_datasources:
-    file: ./datasources.yml
-
 services:
-
   loki:
-    image: grafana/loki:2.9.8
+    image: grafana/loki:2.9.2
+    # container_name removido para compatibilidade com Swarm/Scaling
     command: -config.file=/etc/loki/loki-config.yml
-    ports:
-      - "3100:3100"
+    # Portas removidas para não expor Loki publicamente (acesso apenas interno na rede)
     configs:
       - source: loki_config
         target: /etc/loki/loki-config.yml
-    # volumes:
-    #   - ./loki-config.yml:/etc/loki/loki-config.yml
-    volumes:
-      - loki_data:/loki
     networks:
       - observability_net
     deploy:
       mode: replicated
       replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
-      restart_policy:
-        condition: any
 
   promtail:
-    image: grafana/promtail:2.9.8
+    image: grafana/promtail:2.9.2
+    # container_name removido para compatibilidade com Swarm/Global mode
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     command: -config.file=/etc/promtail/promtail-config.yml
     configs:
       - source: promtail_config
         target: /etc/promtail/promtail-config.yml
-    # volumes:
-    #   - ./promtail-config.yml:/etc/promtail/promtail-config.yml
-    volumes:
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - promtail_positions:/tmp
     networks:
       - observability_net
     deploy:
       mode: global
-      restart_policy:
-        condition: any
 
   grafana:
     image: grafana/grafana:10.4.2
+    # container_name removido para evitar conflitos de nome
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=ChangeStrongPassword
@@ -73,18 +43,25 @@ services:
       - source: grafana_datasources
         target: /etc/grafana/provisioning/datasources/datasources.yaml
     volumes:
-      # - ./datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
       - grafana_data:/var/lib/grafana
     networks:
       - observability_net
+    deploy:
+      mode: replicated
+      replicas: 1
 
-    #   - traefik_public
-    # deploy:
-    #   labels:
-    #     - traefik.enable=true
-    #     - traefik.http.routers.logs.rule=Host(`logs.seudominio.com`)
-    #     - traefik.http.routers.logs.entrypoints=websecure
-    #     - traefik.http.routers.logs.tls.certresolver=letsencrypt
-    #     - traefik.http.services.logs.loadbalancer.server.port=3000
-    #   restart_policy:
-    #     condition: any
+networks:
+  observability_net:
+    name: observability_net
+
+volumes:
+  grafana_data:
+    name: grafana_data
+
+configs:
+  loki_config:
+    file: ./loki-config.yml
+  promtail_config:
+    file: ./promtail-config.yml
+  grafana_datasources:
+    file: ./datasources.yml

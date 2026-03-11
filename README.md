@@ -51,6 +51,10 @@ Se o seu Portainer estiver rodando em um ambiente **Swarm** (menu "Configs" vis�
     *   Name: `promtail_config`
     *   Copie e cole o conteúdo do arquivo `promtail-config.yml`.
     *   Clique em **Create config**.
+4.  **Config 3 (Grafana Datasources):**
+    *   Name: `grafana_datasources`
+    *   Copie e cole o conteúdo do arquivo `datasources.yml`.
+    *   Clique em **Create config**.
 5.  Agora, ao criar a Stack no Web Editor, você precisará editar o `docker-compose.yml` para indicar que essas configs já existem externamente:
 
     ```yaml
@@ -59,10 +63,24 @@ Se o seu Portainer estiver rodando em um ambiente **Swarm** (menu "Configs" vis�
         external: true
       promtail_config:
         external: true
+      grafana_datasources:
+        external: true
     ```
 
-**Nota para Ambientes Não-Swarm (Standalone):**
-Se você não vê o menu "Configs" no Portainer, significa que seu ambiente é **Standalone**. Nesse caso, você **DEVE usar a opção "Repository" (Git)** descrita acima. O "Web Editor" não funcionará porque ele não conseguirá encontrar os arquivos `loki-config.yml` e `promtail-config.yml` se você apenas colar o YAML.
+**Nota Importante:**
+Recomendamos fortemente o uso da opção **Repository (Git)** no Portainer. Isso garante que todos os arquivos de configuração (`loki-config.yml`, `promtail-config.yml`, `datasources.yml`) sejam baixados e utilizados corretamente, sem necessidade de criação manual de Configs.
+
+## Solução de Problemas Comuns
+
+### Erro: "bind source path does not exist"
+Isso ocorre quando você tenta usar o **Web Editor** do Portainer e cola o YAML, mas o Portainer não tem acesso aos arquivos de configuração locais.
+**Solução:** Use a opção **Repository (Git)** para fazer o deploy da stack.
+
+### Erro: "service ... uses an undefined config"
+Ocorre se você definiu uma config como `external: true` mas esqueceu de criá-la no menu "Configs" antes do deploy.
+
+### Erro: "invalid mount config for type 'bind'"
+Geralmente causado por caminhos de arquivo incorretos. A stack atual usa caminhos relativos (`./arquivo.yml`) que funcionam perfeitamente quando o deploy é feito via **Git** ou **Docker Compose local**.
 
 ## Notas sobre a Configuração
 - A rede `observability_net` está configurada para usar o driver padrão. No Swarm, ela será `overlay`. Localmente, será `bridge`.
