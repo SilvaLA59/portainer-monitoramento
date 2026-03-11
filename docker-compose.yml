@@ -14,6 +14,8 @@ configs:
     file: ./loki-config.yml
   promtail_config:
     file: ./promtail-config.yml
+  grafana_datasources:
+    file: ./datasources.yml
 
 services:
 
@@ -22,11 +24,12 @@ services:
     command: -config.file=/etc/loki/loki-config.yml
     ports:
       - "3100:3100"
-    # configs:
-    #   - source: loki_config
-    #     target: /etc/loki/loki-config.yml
+    configs:
+      - source: loki_config
+        target: /etc/loki/loki-config.yml
+    # volumes:
+    #   - ./loki-config.yml:/etc/loki/loki-config.yml
     volumes:
-      - ./loki-config.yml:/etc/loki/loki-config.yml
       - loki_data:/loki
     networks:
       - observability_net
@@ -42,11 +45,12 @@ services:
   promtail:
     image: grafana/promtail:2.9.8
     command: -config.file=/etc/promtail/promtail-config.yml
-    # configs:
-    #   - source: promtail_config
-    #     target: /etc/promtail/promtail-config.yml
+    configs:
+      - source: promtail_config
+        target: /etc/promtail/promtail-config.yml
+    # volumes:
+    #   - ./promtail-config.yml:/etc/promtail/promtail-config.yml
     volumes:
-      - ./promtail-config.yml:/etc/promtail/promtail-config.yml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - promtail_positions:/tmp
@@ -65,8 +69,11 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     ports:
       - "3000:3000"
+    configs:
+      - source: grafana_datasources
+        target: /etc/grafana/provisioning/datasources/datasources.yaml
     volumes:
-      - ./datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      # - ./datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
       - grafana_data:/var/lib/grafana
     networks:
       - observability_net
