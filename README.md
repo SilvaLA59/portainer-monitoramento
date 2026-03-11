@@ -38,37 +38,17 @@ docker stack deploy -c docker-compose.yml monitoramento
 3. Conecte ao seu repositório Git onde este arquivo está.
 4. O Portainer irá baixar os arquivos e criar os Configs e Serviços automaticamente.
 
-**Via Portainer (Opção Manual - Web Editor - APENAS SWARM):**
-Se o seu Portainer estiver rodando em um ambiente **Swarm** (menu "Configs" visível), e você preferir copiar e colar o `docker-compose.yml` diretamente no editor, siga estes passos para criar as Configs manualmente antes:
+**Via Portainer (Opção Manual - Web Editor - SWARM):**
+Como este arquivo `docker-compose.yml` agora é **Self-Contained** (contém todas as configurações embutidas), você pode copiar e colar o conteúdo diretamente no Web Editor do Portainer sem precisar criar configs manualmente antes.
 
-1.  No menu lateral esquerdo, vá em **Configs** (só aparece se o ambiente for Swarm).
-2.  Clique em **Add config**.
-3.  **Config 1 (Loki):**
-    *   Name: `loki_config`
-    *   Copie e cole o conteúdo do arquivo `loki-config.yml`.
-    *   Clique em **Create config**.
-4.  **Config 2 (Promtail):**
-    *   Name: `promtail_config`
-    *   Copie e cole o conteúdo do arquivo `promtail-config.yml`.
-    *   Clique em **Create config**.
-4.  **Config 3 (Grafana Datasources):**
-    *   Name: `grafana_datasources`
-    *   Copie e cole o conteúdo do arquivo `datasources.yml`.
-    *   Clique em **Create config**.
-5.  Agora, ao criar a Stack no Web Editor, você precisará editar o `docker-compose.yml` para indicar que essas configs já existem externamente:
+1. Crie uma nova **Stack**.
+2. Selecione **Web Editor**.
+3. Cole o conteúdo do `docker-compose.yml`.
+4. Faça o Deploy.
 
-    ```yaml
-    configs:
-      loki_config:
-        external: true
-      promtail_config:
-        external: true
-      grafana_datasources:
-        external: true
-    ```
+**Nota:** A opção **Repository (Git)** continua sendo a mais recomendada para manter o versionamento e atualizações automáticas.
 
-**Nota Importante:**
-Recomendamos fortemente o uso da opção **Repository (Git)** no Portainer. Isso garante que todos os arquivos de configuração (`loki-config.yml`, `promtail-config.yml`, `datasources.yml`) sejam baixados e utilizados corretamente, sem necessidade de criação manual de Configs.
+## Solução de Problemas Comuns
 
 ## Solução de Problemas Comuns
 
