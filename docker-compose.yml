@@ -1,0 +1,80 @@
+version: "3.8"
+
+networks:
+  observability_net:
+    # driver: overlay # Commented out to allow default driver (bridge for local, overlay for swarm)
+
+volumes:
+  grafana_data:
+  loki_data:
+  promtail_positions:
+
+configs:
+  loki_config:
+    file: ./loki-config.yml
+  promtail_config:
+    file: ./promtail-config.yml
+
+services:
+
+  loki:
+    image: grafana/loki:2.9.8
+    command: -config.file=/etc/loki/loki-config.yml
+    ports:
+      - "3100:3100"
+    configs:
+      - source: loki_config
+        target: /etc/loki/loki-config.yml
+    volumes:
+      - loki_data:/loki
+    networks:
+      - observability_net
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+
+  promtail:
+    image: grafana/promtail:2.9.8
+    command: -config.file=/etc/promtail/promtail-config.yml
+    configs:
+      - source: promtail_config
+        target: /etc/promtail/promtail-config.yml
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - promtail_positions:/tmp
+    networks:
+      - observability_net
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=ChangeStrongPassword
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - observability_net
+
+    #   - traefik_public
+    # deploy:
+    #   labels:
+    #     - traefik.enable=true
+    #     - traefik.http.routers.logs.rule=Host(`logs.seudominio.com`)
+    #     - traefik.http.routers.logs.entrypoints=websecure
+    #     - traefik.http.routers.logs.tls.certresolver=letsencrypt
+    #     - traefik.http.services.logs.loadbalancer.server.port=3000
+    #   restart_policy:
+    #     condition: any
