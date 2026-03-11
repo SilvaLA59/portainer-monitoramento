@@ -35,9 +35,6 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     ports:
       - "3000:3000"
-    configs:
-      - source: grafana_datasources
-        target: /etc/grafana/provisioning/datasources/datasources.yaml
     volumes:
       - grafana_data:/var/lib/grafana
     networks:
@@ -119,14 +116,3 @@ configs:
               target_label: __path__
               replacement: /var/lib/docker/containers/$$1/$$1-json.log
 
-  grafana_datasources:
-    content: |
-      apiVersion: 1
-      datasources:
-        - name: Loki
-          type: loki
-          access: proxy
-          url: http://loki:3100
-          isDefault: true
-          version: 1
-          editable: false
