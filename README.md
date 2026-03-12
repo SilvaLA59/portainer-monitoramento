@@ -1,11 +1,27 @@
 # Stack de Monitoramento (Logging)
 
-Esta stack configura o **Grafana**, **Loki** e **Promtail** para agregação e visualização de logs de containers Docker.
+## Objetivo
+Esta stack oferece uma solução completa e leve para **Observabilidade de Logs** em ambientes Docker. Seu principal objetivo é centralizar os logs de todos os containers (seja em um único host ou em um cluster Swarm), permitindo pesquisa, filtragem e visualização em tempo real sem a necessidade de acessar individualmente cada servidor ou container.
 
-## Serviços
-- **Grafana**: Visualização dos dados (Porta 3000).
-- **Loki**: Sistema de agregação de logs.
-- **Promtail**: Agente que coleta logs dos containers e envia para o Loki.
+## Componentes da Stack
+
+### 1. Grafana
+**Interface de Visualização e Análise.**
+O Grafana é o painel de controle onde você visualiza os dados. Nesta stack, ele já vem pré-configurado com o Loki como fonte de dados (datasource), permitindo que você use a aba "Explore" para consultar logs usando a linguagem LogQL.
+- **Porta:** 3000 (Acesso Web)
+- **Função:** Query e Visualização de Logs.
+
+### 2. Loki
+**Armazenamento e Indexação de Logs.**
+O Loki é um sistema de agregação de logs inspirado no Prometheus. Diferente de outras soluções (como ELK), ele não indexa o texto completo dos logs, mas apenas os metadados (labels), o que o torna extremamente leve e eficiente em termos de armazenamento e memória.
+- **Porta:** 3100 (Acesso interno via API)
+- **Função:** Receber, armazenar e servir logs para o Grafana.
+
+### 3. Promtail
+**Agente Coletor de Logs.**
+O Promtail é o agente que roda em cada nó do Docker. Ele monitora os arquivos de log locais dos containers, anexa labels úteis (como `container_name`, `service_name`, `stack_name`) e envia os logs para o Loki.
+- **Modo de Deploy:** Global (roda uma instância em cada node do Swarm) ou Local.
+- **Função:** Coleta (tailing), processamento (labeling) e envio (shipping) de logs.
 
 ## Pré-requisitos
 - Docker e Docker Compose (para execução local).
@@ -47,8 +63,6 @@ Como este arquivo `docker-compose.yml` agora é **Self-Contained** (contém toda
 4. Faça o Deploy.
 
 **Nota:** A opção **Repository (Git)** continua sendo a mais recomendada para manter o versionamento e atualizações automáticas.
-
-## Solução de Problemas Comuns
 
 ## Solução de Problemas Comuns
 
